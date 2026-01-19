@@ -10,16 +10,16 @@ Docs: https://developers.amadeus.com/self-service/category/flights/api-doc/fligh
 from __future__ import annotations
 
 import argparse
-import json
 import os
 import sqlite3
 import sys
 from dataclasses import dataclass
-from datetime import date, datetime, timedelta
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 from dotenv import load_dotenv
 import requests
 import time
+
+from helpers import format_duration, format_time, parse_valid_carriers, generate_date_pairs
 
 AMADEUS_BASE = "https://test.api.amadeus.com"  # use https://api.amadeus.com for production
 TOKEN_DB = "flights.db"
@@ -159,12 +159,6 @@ def load_rules(token_db: str = TOKEN_DB) -> list[dict]:
     conn.close()
     return rules
 
-# Helper function to parse valid_carriers from included_airline_codes
-def parse_valid_carriers(included_airline_codes: str | None) -> set[str]:
-    if not included_airline_codes:
-        return set()
-    return {c.strip().upper() for c in included_airline_codes.split(",")}
-
 # Helper function to search for flights
 def flight_offers_search(
     token: str,
@@ -284,39 +278,6 @@ def get_fare_brand(offer: dict) -> str:
         return "UNKNOWN"
 
     return fares[0].get("brandedFareLabel", "UNKNOWN")
-
-# Helper function to generate date pairs
-def generate_date_pairs(
-    base_depart: str,
-    base_return: Optional[str],
-    flex_days: int,
-) -> list[tuple[str, Optional[str]]]:
-    """
-    Generates (depart_date, return_date) pairs.
-    If base_return is provided, trip length is inferred.
-    """
-    base_depart_dt = date.fromisoformat(base_depart)
-    pairs: list[tuple[str, Optional[str]]] = []
-
-    # Infer trip length if round-trip
-    if base_return:
-        base_return_dt = date.fromisoformat(base_return)
-        trip_length = (base_return_dt - base_depart_dt).days
-        if trip_length <= 0:
-            raise ValueError("return-date must be after depart date")
-    else:
-        trip_length = None
-
-    for delta in range(-flex_days, flex_days + 1):
-        depart = base_depart_dt + timedelta(days=delta)
-
-        if trip_length is not None:
-            ret = depart + timedelta(days=trip_length)
-            pairs.append((depart.isoformat(), ret.isoformat()))
-        else:
-            pairs.append((depart.isoformat(), None))
-
-    return pairs
 
 # Main
 def main() -> int:
@@ -458,15 +419,27 @@ def main() -> int:
             )
             print(f"\n=== {rq['rule_name']} | {trip_str} ===")
             for i, pk in enumerate(picks[: args.print_top], start=1):
-                print(
-                    f"{i}. {pk.currency} {pk.total_price:.2f} | "
-                    f"carrier={pk.carrier} | "
-                    f"stops={pk.num_stops} ({pk.stops}) | "
-                    f"id={pk.offer_id}"
-                )
-            # print(f"\n=== {rq['rule_name']} ===")
-            # for i, pk in enumerate(picks[: args.print_top], start=1):
-            #     print(f"{i}. {pk.currency} {pk.total_price:.2f} | carrier={pk.carrier} | stops={pk.num_stops} ({pk.stops}) | id={pk.offer_id}")
+                # Routing
+                if pk.num_stops:
+                    stops_str = " → ".join(pk.stop_airports)
+                else:
+                    stops_str = "DIRECT"
+
+                # Timing
+                dep_time = format_time(pk.depart_time)
+                arr_time = format_time(pk.arrive_time)
+
+                # Duration
+                duration = format_duration(pk.total_duration)
+
+                print(f"{i}. {pk.currency} {pk.total_price:.2f} (base {pk.base_price:.2f}) | "
+                    f"{pk.carrier} | {pk.fare_brand}")
+
+                print(f"   {dep_time} → {arr_time} | {duration} | "
+                    f"{pk.num_stops} stop{'s' if pk.num_stops != 1 else ''} ({stops_str})")
+
+                print(f"   Bags: {pk.checked_bags} checked / {pk.cabin_bags} carry-on | "
+                    f"Seats left: {pk.seats_left}")
             if not picks:
                 print("No matching offers returned.")
 
