@@ -12,33 +12,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import {
-  Field,
-  FieldGroup,
-  FieldLabel,
-  FieldSet,
-} from "@/components/ui/field"
-import { Input } from "@/components/ui/input"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-import {
-  Drawer,
-  DrawerContent,
-  DrawerDescription,
-  DrawerFooter,
-  DrawerHeader,
-  DrawerTitle,
-  DrawerTrigger,
-} from "@/components/ui/drawer"
 
 // Importing components (TODO: Make other components from here into their own components)
 import WatchResultsDrawer from "@/components/dashboard/watch-results-drawer";
 import SearchFlightsDrawer from "@/components/dashboard/search-flights-drawer";
+import CreateRuleDrawer from "@/components/dashboard/create-rule-drawer";
 import Globe from "@/components/globe/globe";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE!;
@@ -346,75 +324,19 @@ export default function Home() {
       {error && <p style={{ color: "red" }}>{error}</p>}
 
       {/* CREATE RULE */}
-      <Drawer open={openCreateDrawer} onOpenChange={setOpenCreateDrawer}>
-        <DrawerTrigger asChild>
-          <Button variant="outline">
-            <PlusIcon /> New Rule
-          </Button>
-        </DrawerTrigger>
-        <DrawerContent>
-          <div className="mx-auto w-full max-w-sm">
-            <DrawerHeader>
-              <DrawerTitle>Create a new rule</DrawerTitle>
-              <DrawerDescription>
-                Create rules to monitor flights with specific criteria.
-              </DrawerDescription>
-            </DrawerHeader>
-            <form>
-              <FieldGroup>
-                <FieldSet>
-                  <FieldGroup>
-                    <Field>
-                      <FieldLabel htmlFor="checkout-7j9-rule-name-43j">Rule Name</FieldLabel>
-                      <Input id="checkout-7j9-rule-name-43j" placeholder="Rule name" value={ruleName} onChange={(e) => setRuleName(e.target.value)} />
-                    </Field>
-                    <Field>
-                      <FieldLabel htmlFor="checkout-7j9-airlines-43j">Airlines</FieldLabel>
-                      <Input id="checkout-7j9-airlines-43j" placeholder="Airlines (AC,AZ)" value={airlines} onChange={(e) => setAirlines(e.target.value)} />
-                    </Field>
-                    <Field>
-                      <FieldLabel htmlFor="checkout-7j9-non-stop-43j">Non-stop</FieldLabel>
-                      <Select
-                        value={nonStop === null ? "any" : "1"}
-                        onValueChange={(value) =>
-                          setNonStop(value === "any" ? null : 1)
-                        }
-                      >
-                        <SelectTrigger id="checkout-7j9-non-stop-43j" >
-                          <SelectValue placeholder="non-stop?" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="any">Any</SelectItem>
-                          <SelectItem value="1">Yes</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </Field>
-                    <Field>
-                      <FieldLabel htmlFor="checkout-7j9-max-stops-43j">Max Stops</FieldLabel>
-                      <Input
-                        type="number"
-                        min={0}
-                        value={maxStops}
-                        disabled={nonStop===1}
-                        id="checkout-7j9-max-stops-43j"
-                        onChange={(e) => {
-                          const value = Number(e.target.value);
-                          if (!Number.isNaN(value) && value >= 0) {
-                            setMaxStops(value);
-                          }
-                        }}
-                      />
-                    </Field>
-                  </FieldGroup>
-                </FieldSet>
-              </FieldGroup>
-            </form>
-            <DrawerFooter>
-              <Button variant="secondary" onClick={createRule}>Create Rule</Button>
-            </DrawerFooter>
-          </div>
-        </DrawerContent>
-      </Drawer>
+      <CreateRuleDrawer
+        open={openCreateDrawer}
+        onOpenChange={setOpenCreateDrawer}
+        ruleName={ruleName}
+        setRuleName={setRuleName}
+        airlines={airlines}
+        setAirlines={setAirlines}
+        nonStop={nonStop}
+        setNonStop={setNonStop}
+        maxStops={maxStops}
+        setMaxStops={setMaxStops}
+        onCreate={createRule}
+      />
 
       {/* RULES TABLE */}
       <Table border={1} cellPadding={8} style={{ marginTop: 12 }}>
