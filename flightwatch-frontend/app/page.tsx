@@ -55,6 +55,21 @@ type Rule = {
   enabled: number;
 };
 
+type Watch = {
+  id: number;
+  rule_id: number;
+  rule_name: string;
+  origin: string;
+  destination: string;
+  depart_date: string;
+  return_date?: string | null;
+  flex_days: number;
+  adults: number;
+  travel_class: string;
+  currency: string;
+  enabled: number;
+};
+
 type ItineraryTiming = {
   depart_time: string;
   arrive_time: string;
@@ -143,6 +158,11 @@ export default function Home() {
   const [nonStop, setNonStop] = useState<number | null>(null);
   const [maxStops, setMaxStops] = useState(1);
 
+  // --- Watchlist ---
+  const [watches, setWatches] = useState<Watch[]>([]);
+  const [loadingWatches, setLoadingWatches] = useState(false);
+  const [highlightWatchId, setHighlightWatchId] = useState<number | null>(null);
+
   // --- search form ---
   const [openDepart, setOpenDepart] = useState(false);
   const [openReturn, setOpenReturn] = useState(false);
@@ -208,6 +228,72 @@ export default function Home() {
     setOpenCreateDrawer(false);
   }
 
+  async function loadWatches() {
+    setLoadingWatches(true);
+    try {
+      const res = await fetch(`${API_BASE}/watches`);
+      if (!res.ok) throw new Error(await res.text());
+      setWatches(await res.json());
+    } catch (e: any) {
+      alert(e.message);
+    } finally {
+      setLoadingWatches(false);
+    }
+  }
+
+  async function toggleWatch(watch: Watch) {
+    await fetch(`${API_BASE}/watches/${watch.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ enabled: watch.enabled ? 0 : 1 }),
+    });
+    loadWatches();
+  }
+
+  async function deleteWatch(id: number) {
+    if (!confirm(`Delete watch ${id}?`)) return;
+    await fetch(`${API_BASE}/watches/${id}`, { method: "DELETE" });
+    loadWatches();
+  }
+
+  async function watchFlight(offer: FlightOffer) {
+    const rule = rules.find((r) => r.rule_name === offer.rule_name);
+    const rule_id = rule ? rule.id : null;
+    const payload = {
+      rule_id: rule_id,
+      origin,
+      destination,
+      depart_date: formatDate(depart),
+      return_date: formatDate(returnDate),
+      flex_days: flexDays,
+      adults,
+      travel_class: "ECONOMY", // for now
+      currency: offer.currency,
+    };
+
+    const res = await fetch(`${API_BASE}/watches`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+      alert(await res.text());
+      return;
+    }
+
+    const data = await res.json();
+
+    // Mark this watch for highlighting
+    setHighlightWatchId(data);
+
+    // Reload watches
+    await loadWatches();
+
+    // Auto-clear highlight after a short delay
+    setTimeout(() => setHighlightWatchId(null), 2000);
+  }
+
   function formatDate(date?: Date | null): string | null {
     if (!date) return null;
     return date.toISOString().slice(0, 10);
@@ -265,6 +351,7 @@ export default function Home() {
 
   useEffect(() => {
     loadRules();
+    loadWatches();
   }, []);
 
   useEffect(() => {
@@ -369,12 +456,65 @@ export default function Home() {
               <TableCell >{r.included_airline_codes || "ANY"}</TableCell >
               <TableCell >{r.non_stop ? "YES" : "-"}</TableCell >
               <TableCell >{r.max_allowed_stops}</TableCell >
-              <TableCell >{r.enabled ? "ON" : "OFF"}</TableCell >
+              <TableCell >
+                {r.enabled ? (
+                  <span className="text-green-600 font-medium">ON</span>
+                ) : (
+                  <span className="text-red-600 font-medium">OFF</span>
+                )}
+              </TableCell >
               <TableCell >
                 <Button variant='outline' onClick={() => toggleRule(r)}>
                   <PowerIcon />{r.enabled ? "Disable" : "Enable"}
                 </Button>{" "}
                 <Button variant='outline' onClick={() => deleteRule(r.id)}>
+                  <TrashIcon />Delete
+                </Button>
+              </TableCell >
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+
+      {/* WATCHLIST TABLE */}
+      <Table border={1} cellPadding={8} style={{ marginTop: 12 }}>
+        <TableHeader>
+          <TableRow>
+            <TableHead >Rule</TableHead >
+            <TableHead >Route</TableHead >
+            <TableHead >Dates</TableHead >
+            <TableHead >Adults</TableHead >
+            <TableHead >Flex</TableHead >
+            <TableHead> Status</TableHead>
+            <TableHead />
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {watches.map((w) => (
+            <TableRow
+              key={w.id}
+              className={w.id === highlightWatchId
+                ? "bg-yellow-100 animate-pulse"
+                : ""
+              }
+            >
+              <TableCell >{w.rule_name}</TableCell >
+              <TableCell >{w.origin} → {w.destination}</TableCell >
+              <TableCell >{w.depart_date} {w.return_date && `→ ${w.return_date}`}</TableCell >
+              <TableCell >{w.adults}</TableCell >
+              <TableCell >{w.flex_days}</TableCell >
+              <TableCell >
+                {w.enabled ? (
+                  <span className="text-green-600 font-medium">Enabled</span>
+                ) : (
+                  <span className="text-red-600 font-medium">Disabled</span>
+                )}
+              </TableCell >
+              <TableCell >
+                <Button variant='outline' onClick={() => toggleWatch(w)}>
+                  <PowerIcon />{w.enabled ? "Disable" : "Enable"}
+                </Button>{" "}
+                <Button variant='outline' onClick={() => deleteWatch(w.id)}>
                   <TrashIcon />Delete
                 </Button>
               </TableCell >
@@ -520,6 +660,7 @@ export default function Home() {
                 <TableHead>Bags</TableHead>
                 <TableHead>Seats Left</TableHead>
                 <TableHead>Price</TableHead>
+                <TableHead />
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -585,6 +726,15 @@ export default function Home() {
                   </TableCell>
                   <TableCell>
                     {o.currency} {o.total_price}
+                  </TableCell>
+                  <TableCell>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => watchFlight(o)}
+                    >
+                      <PlusIcon /> Watch
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))}

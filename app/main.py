@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.flights.router import router as flights_router
 from app.api.rules.router import router as rules_router
+from app.api.watches.router import router as watches_router
 
 app = FastAPI(title="Flights Watcher API")
 
@@ -20,3 +21,4 @@ app.add_middleware(
 
 app.include_router(flights_router)
 app.include_router(rules_router)
+app.include_router(watches_router)
