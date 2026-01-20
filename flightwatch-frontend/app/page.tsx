@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button"
-import { ChevronDownIcon, Minus, Plus, PlusIcon, PowerIcon, RefreshCwIcon, SearchIcon, TrashIcon } from "lucide-react";
+import { ChevronDownIcon, Minus, Plus, PlusIcon, PowerIcon, SearchIcon, TrashIcon } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -277,11 +277,6 @@ export default function Home() {
       <h1>Flights Watcher Admin</h1>
 
       {error && <p style={{ color: "red" }}>{error}</p>}
-
-      {/* REFRESH RULES */}
-      <Button variant='outline' onClick={loadRules} disabled={loadingRules}>
-        <RefreshCwIcon/>Refresh
-      </Button>
 
       {/* CREATE RULE */}
       <Drawer>
