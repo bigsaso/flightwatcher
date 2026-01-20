@@ -2,23 +2,13 @@
 
 import { useEffect, useState } from "react";
 
-import { Button } from "@/components/ui/button"
-import { PanelTopOpen, Play, PlusIcon, PowerIcon, TrashIcon } from "lucide-react";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
-
 // Importing components (TODO: Make other components from here into their own components)
 import WatchResultsDrawer from "@/components/dashboard/watch-results-drawer";
 import SearchFlightsDrawer from "@/components/dashboard/search-flights-drawer";
 import CreateRuleDrawer from "@/components/dashboard/create-rule-drawer";
 import RulesTable from "@/components/dashboard/rules-table";
 import WatchlistTable from "@/components/dashboard/watchlist-table";
+import SearchResultsTable from "@/components/dashboard/search-results-table";
 import Globe from "@/components/globe/globe";
 
 import type { Watch } from "@/types/watch";
@@ -314,75 +304,6 @@ export default function Home() {
         onToggle={toggleWatch}
         onDelete={deleteWatch}
       />
-      {/* <Table border={1} cellPadding={8} style={{ marginTop: 12 }}>
-        <TableHeader>
-          <TableRow>
-            <TableHead >Rule</TableHead >
-            <TableHead >Route</TableHead >
-            <TableHead >Dates</TableHead >
-            <TableHead >Adults</TableHead >
-            <TableHead >Flex</TableHead >
-            <TableHead> Status</TableHead>
-            <TableHead />
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {watches.map((w) => (
-            <TableRow
-              key={w.id}
-              className={w.id === highlightWatchId
-                ? "bg-yellow-100 animate-pulse"
-                : ""
-              }
-            >
-              <TableCell >{w.rule_name}</TableCell >
-              <TableCell >{w.origin} → {w.destination}</TableCell >
-              <TableCell >{w.depart_date} {
-                w.return_date
-                ? `→ ${w.return_date}`
-                : <span className="text-muted-foreground italic">
-                    (One-way)
-                  </span>
-              }
-              </TableCell >
-              <TableCell >{w.adults}</TableCell >
-              <TableCell >{w.flex_days}</TableCell >
-              <TableCell >
-                {w.enabled ? (
-                  <span className="text-green-600 font-medium">Enabled</span>
-                ) : (
-                  <span className="text-red-600 font-medium">Disabled</span>
-                )}
-              </TableCell >
-              <TableCell >
-                <Button
-                  variant="outline" onClick={() => {
-                    setResultsWatchId(w.id);
-                    setOpenResultsDrawer(true);
-                  }}
-                >
-                  <PanelTopOpen /> Results
-                </Button>
-                {" "}
-                <Button
-                  variant="outline" onClick={() => runWatch(w.id)}
-                  disabled={!w.enabled || runningWatchId === w.id}
-                >
-                  <Play />{runningWatchId === w.id ? "Running…" : "Run"}
-                </Button>
-                {" "}
-                <Button variant='outline' onClick={() => toggleWatch(w)}>
-                  <PowerIcon />{w.enabled ? "Disable" : "Enable"}
-                </Button>
-                {" "}
-                <Button variant='outline' onClick={() => deleteWatch(w.id)}>
-                  <TrashIcon />Delete
-                </Button>
-              </TableCell >
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table> */}
       <WatchResultsDrawer
         open={openResultsDrawer}
         onOpenChange={setOpenResultsDrawer}
@@ -412,101 +333,13 @@ export default function Home() {
       />
 
       {/* RESULTS */}
-      {searchResults.length > 0 && (
-        <>
-          <h3>Results</h3>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Rule</TableHead>
-                <TableHead>Carrier</TableHead>
-                <TableHead>Outbound</TableHead>
-                <TableHead>Inbound</TableHead>
-                <TableHead>Bags</TableHead>
-                <TableHead>Seats Left</TableHead>
-                <TableHead>Price</TableHead>
-                <TableHead />
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {searchResults.map((o, i) => (
-                <TableRow key={i}>
-                  <TableCell>{o.rule_name}</TableCell>
-                  <TableCell>{o.carrier} - {o.fare_brand}</TableCell>
-                  {/* OUTBOUND (always shown) */}
-                  <TableCell>
-                    <div className="flex flex-col">
-                      <span>
-                        🛫
-                        {formatDateTime(o.outbound.depart_time)}
-                        {" → "}
-                        {formatDateTime(o.outbound.arrive_time)}
-                      </span>
-                      {o.outbound.duration && (
-                        <span className="text-sm text-muted-foreground">
-                          {formatDuration(o.outbound.duration)}
-                          {" · "}
-                          {o.outbound_flight_numbers + " " + formatStops(o.stop_airports_outbound)}
-                        </span>
-                      )}
-                    </div>
-                  </TableCell>
-                  {/* INBOUND (conditionally shown) */}
-                  <TableCell>
-                    {o.inbound ? (
-                      <div className="flex flex-col">
-                        <span>
-                          🛬
-                          {formatDateTime(o.inbound.depart_time)}
-                          {" → "}
-                          {formatDateTime(o.inbound.arrive_time)}
-                        </span>
-                        {o.inbound.duration && (
-                          <span className="text-sm text-muted-foreground">
-                            {formatDuration(o.inbound.duration)}
-                            {" · "}
-                            {o.stop_airports_inbound
-                              ? o.inbound_flight_numbers + " " + formatStops(o.stop_airports_inbound)
-                              : o.inbound_flight_numbers + " " + "Direct"}
-                          </span>
-                        )}
-                      </div>
-                    ) : (
-                      <span className="text-muted-foreground italic">
-                        One-way
-                      </span>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <span>
-                      🧳 {o.checked_bags} / 🎒 {o.cabin_bags}
-                    </span>
-                  </TableCell>
-                  <TableCell>
-                    {o.seats_left > 0 ? (
-                      <span>💺 {o.seats_left}</span>
-                    ) : (
-                      <span className="text-muted-foreground">N/A</span>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    {o.currency} {o.total_price}
-                  </TableCell>
-                  <TableCell>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => watchFlight(o)}
-                    >
-                      <PlusIcon /> Watch
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </>
-      )}
+      <SearchResultsTable
+        results={searchResults}
+        onWatch={watchFlight}
+        formatDateTime={formatDateTime}
+        formatDuration={formatDuration}
+        formatStops={formatStops}
+      />
 
       {/* GLOBE */}
       {!openSearchDrawer && origin && destination && (
