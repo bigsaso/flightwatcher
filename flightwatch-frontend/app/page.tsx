@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button"
-import { ChevronDownIcon, Minus, PanelTopOpen, Play, Plus, PlusIcon, PowerIcon, SearchIcon, TrashIcon } from "lucide-react";
+import { PanelTopOpen, Play, PlusIcon, PowerIcon, TrashIcon } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -12,7 +12,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { Calendar } from "@/components/ui/calendar"
 import {
   Field,
   FieldGroup,
@@ -36,14 +35,10 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from "@/components/ui/drawer"
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover"
 
 // Importing components (TODO: Make other components from here into their own components)
 import WatchResultsDrawer from "@/components/dashboard/watch-results-drawer";
+import SearchFlightsDrawer from "@/components/dashboard/search-flights-drawer";
 import Globe from "@/components/globe/globe";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE!;
@@ -88,7 +83,6 @@ type FlightOffer = {
   inbound_flight_numbers?: string[] | null;
   fare_brand: string;
   num_stops: number;
-  // stop_airports: string[];
   total_duration: string;
   stop_airports_outbound: string[];
   stop_airports_inbound?: string[] | null;
@@ -98,51 +92,6 @@ type FlightOffer = {
   cabin_bags: number;
   seats_left: number;
 };
-
-type StepperProps = {
-  value: number;
-  label: string;
-  min: number;
-  onChange: (next: number) => void;
-};
-
-function Stepper({ value, label, min, onChange }: StepperProps) {
-  return (
-    <div className="flex items-center justify-center space-x-4">
-      <Button
-        type="button"
-        variant="outline"
-        size="icon"
-        className="h-8 w-8 shrink-0 rounded-full"
-        onClick={() => onChange(value - 1)}
-        disabled={value <= min}
-      >
-        <Minus />
-        <span className="sr-only">Decrease</span>
-      </Button>
-
-      <div className="flex flex-col items-center min-w-[80px]">
-        <div className="text-3xl font-bold tracking-tight">
-          {value}
-        </div>
-        <div className="text-muted-foreground text-xs uppercase">
-          {label}
-        </div>
-      </div>
-
-      <Button
-        type="button"
-        variant="outline"
-        size="icon"
-        className="h-8 w-8 shrink-0 rounded-full"
-        onClick={() => onChange(value + 1)}
-      >
-        <Plus />
-        <span className="sr-only">Increase</span>
-      </Button>
-    </div>
-  );
-}
 
 export default function Home() {
   const [rules, setRules] = useState<Rule[]>([]);
@@ -586,126 +535,24 @@ export default function Home() {
 
       {/* SEARCH DRAWER */}
       <h2 style={{ marginTop: 40 }}>Search Flights</h2>
-
-      <Drawer open={openSearchDrawer} onOpenChange={setOpenSearchDrawer}>
-        <DrawerTrigger asChild>
-          <Button variant="outline">
-            <SearchIcon /> Search Flights
-          </Button>
-        </DrawerTrigger>
-        <DrawerContent>
-          <div className="mx-auto w-full max-w-sm">
-            <DrawerHeader>
-              <DrawerTitle>Search Flights</DrawerTitle>
-              <DrawerDescription>
-                Search for flights based on your criteria.
-              </DrawerDescription>
-            </DrawerHeader>
-            <form>
-              <FieldGroup>
-                <FieldSet>
-                  <FieldGroup>
-                    <Field>
-                      <FieldLabel htmlFor="checkout-7j9-origin-43j">Origin</FieldLabel>
-                      <Input id="checkout-7j9-origin-43j" placeholder="Origin airport code" value={origin} onChange={(e) => setOrigin(e.target.value)} />
-                    </Field>
-                    <Field>
-                      <FieldLabel htmlFor="checkout-7j9-destination-43j">Destination</FieldLabel>
-                      <Input id="checkout-7j9-destination-43j" placeholder="Destination airport code" value={destination} onChange={(e) => setDestination(e.target.value)} />
-                    </Field>
-                    <Field>
-                      <FieldLabel htmlFor="checkout-7j9-depart-43j">Depart Date</FieldLabel>
-                      <Popover open={openDepart} onOpenChange={setOpenDepart}>
-                        <PopoverTrigger asChild>
-                          <Button
-                            variant="outline"
-                            id="depart"
-                            className="w-48 justify-between font-normal"
-                          >
-                            {depart ? depart.toLocaleDateString() : "Select date"}
-                            <ChevronDownIcon />
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto overflow-hidden p-0" align="start">
-                          <Calendar
-                            mode="single"
-                            selected={depart}
-                            captionLayout="dropdown"
-                            onSelect={(date) => {
-                              setDepart(date)
-                              setOpenDepart(false)
-                            }}
-                          />
-                        </PopoverContent>
-                      </Popover>
-                    </Field>
-                    <Field>
-                      <FieldLabel htmlFor="checkout-7j9-return-43j">Return Date</FieldLabel>
-                      <Popover open={openReturn} onOpenChange={(open) => {
-                          setOpenReturn(open);
-                          if (open && depart) {
-                            setReturnCalendarDate(new Date(
-                              depart.getFullYear(),
-                              depart.getMonth(),
-                              depart.getDay() + 1
-                            ))
-                          }
-                        }}
-                      >
-                        <PopoverTrigger asChild>
-                          <Button
-                            variant="outline"
-                            id="return"
-                            className="w-48 justify-between font-normal"
-                          >
-                            {returnDate ? returnDate.toLocaleDateString() : "Select date"}
-                            <ChevronDownIcon />
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto overflow-hidden p-0" align="start">
-                          <Calendar
-                            mode="single"
-                            selected={returnDate}
-                            month={returnCalendarDate}
-                            onMonthChange={setReturnCalendarDate}
-                            captionLayout="dropdown"
-                            onSelect={(date) => {
-                              setReturnDate(date)
-                              setOpenReturn(false)
-                            }}
-                            disabled={(date) => depart ? date < depart : false}
-                          />
-                        </PopoverContent>
-                      </Popover>
-                    </Field>
-                    <Field>
-                      <Stepper
-                        value={flexDays}
-                        label="Flex Days"
-                        min={0}
-                        onChange={(next) => setFlexDays(Math.max(0, next))}
-                      />
-                    </Field>
-                    <Field>
-                      <Stepper
-                        value={adults}
-                        label="Passengers"
-                        min={1}
-                        onChange={(next) => setAdults(Math.max(1, next))}
-                      />
-                    </Field>
-                  </FieldGroup>
-                </FieldSet>
-              </FieldGroup>
-            </form>
-            <DrawerFooter>
-              <Button variant="secondary" onClick={searchFlights} disabled={searching}>
-                {searching ? "Searching..." : "Search Flights"}
-              </Button>
-            </DrawerFooter>
-          </div>
-        </DrawerContent>
-      </Drawer>
+      <SearchFlightsDrawer
+        open={openSearchDrawer}
+        onOpenChange={setOpenSearchDrawer}
+        origin={origin}
+        setOrigin={setOrigin}
+        destination={destination}
+        setDestination={setDestination}
+        depart={depart}
+        setDepart={setDepart}
+        returnDate={returnDate}
+        setReturnDate={setReturnDate}
+        flexDays={flexDays}
+        setFlexDays={setFlexDays}
+        adults={adults}
+        setAdults={setAdults}
+        onSearch={searchFlights}
+        searching={searching}
+      />
 
       {/* RESULTS */}
       {searchResults.length > 0 && (
