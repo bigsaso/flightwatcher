@@ -93,6 +93,5 @@ def search_flights_service(req):
 
                     "seats_left": offer.get("numberOfBookableSeats", 0),
                 })
-    print(results)
 
     return {"offers": results}
