@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button"
-import { ChevronDownIcon, Minus, Play, Plus, PlusIcon, PowerIcon, SearchIcon, TrashIcon } from "lucide-react";
+import { ChevronDownIcon, Minus, PanelTopOpen, Play, Plus, PlusIcon, PowerIcon, SearchIcon, TrashIcon } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -42,6 +42,8 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 
+// Importing components (TODO: Make other components from here into their own components)
+import WatchResultsDrawer from "@/components/dashboard/watch-results-drawer";
 import Globe from "@/components/globe/globe";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE!;
@@ -165,6 +167,8 @@ export default function Home() {
 
   // --- runs ---
   const [runningWatchId, setRunningWatchId] = useState<number | null>(null);
+  const [openResultsDrawer, setOpenResultsDrawer] = useState(false);
+  const [resultsWatchId, setResultsWatchId] = useState<number | null>(null);
 
   // --- search form ---
   const [openDepart, setOpenDepart] = useState(false);
@@ -545,6 +549,14 @@ export default function Home() {
               </TableCell >
               <TableCell >
                 <Button
+                  variant="outline" onClick={() => {
+                    setResultsWatchId(w.id);
+                    setOpenResultsDrawer(true);
+                  }}
+                >
+                  <PanelTopOpen /> Results
+                </Button>
+                <Button
                   variant="outline" onClick={() => runWatch(w.id)}
                   disabled={!w.enabled || runningWatchId === w.id}
                 >
@@ -561,6 +573,12 @@ export default function Home() {
           ))}
         </TableBody>
       </Table>
+      <WatchResultsDrawer
+        open={openResultsDrawer}
+        onOpenChange={setOpenResultsDrawer}
+        watchId={resultsWatchId}
+        apiBase={API_BASE}
+      />
 
       {/* SEARCH DRAWER */}
       <h2 style={{ marginTop: 40 }}>Search Flights</h2>
