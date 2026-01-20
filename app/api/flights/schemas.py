@@ -24,14 +24,12 @@ class FlightOffer(BaseModel):
     base_price: float
     currency: str
     carrier: str
+    flight_numbers: List[str]
     fare_brand: str
     num_stops: int
-    # stop_airports: List[str]
     total_duration: str
     stop_airports_outbound: List[str]
     stop_airports_inbound: Optional[List[str]] = None
-    # depart_time: str
-    # arrive_time: str
     outbound: ItineraryTiming
     inbound: Optional[ItineraryTiming] = None
     checked_bags: int

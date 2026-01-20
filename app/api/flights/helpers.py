@@ -1,6 +1,24 @@
 from typing import Dict, Any, List
 
 
+def extract_flight_numbers(offer: Dict) -> List[str]:
+    """
+    Returns a list of flight numbers in the format:
+    ["TS342"] or ["AZ651", "AZ1165"]
+    """
+    flight_numbers: List[str] = []
+
+    for itinerary in offer.get("itineraries", []):
+        for segment in itinerary.get("segments", []):
+            carrier = segment.get("carrierCode")
+            number = segment.get("number")
+
+            if carrier and number:
+                flight_numbers.append(f"{carrier}{number}")
+
+    return flight_numbers
+
+
 def count_stops(offer: Dict[str, Any]) -> int:
     max_stops = 0
     for it in offer.get("itineraries", []):
