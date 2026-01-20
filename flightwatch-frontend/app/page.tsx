@@ -17,6 +17,7 @@ import {
 import WatchResultsDrawer from "@/components/dashboard/watch-results-drawer";
 import SearchFlightsDrawer from "@/components/dashboard/search-flights-drawer";
 import CreateRuleDrawer from "@/components/dashboard/create-rule-drawer";
+import RulesTable from "@/components/dashboard/rules-table";
 import Globe from "@/components/globe/globe";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE!;
@@ -339,44 +340,11 @@ export default function Home() {
       />
 
       {/* RULES TABLE */}
-      <Table border={1} cellPadding={8} style={{ marginTop: 12 }}>
-        <TableHeader>
-          <TableRow>
-            <TableHead >Name</TableHead >
-            <TableHead >Airlines</TableHead >
-            <TableHead >Non-stop</TableHead >
-            <TableHead >Max stops</TableHead >
-            <TableHead >Enabled</TableHead >
-            <TableHead  />
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {rules.map((r) => (
-            <TableRow key={r.id}>
-              <TableCell >{r.rule_name}</TableCell >
-              <TableCell >{r.included_airline_codes || "ANY"}</TableCell >
-              <TableCell >{r.non_stop ? "YES" : "-"}</TableCell >
-              <TableCell >{r.max_allowed_stops}</TableCell >
-              <TableCell >
-                {r.enabled ? (
-                  <span className="text-green-600 font-medium">ON</span>
-                ) : (
-                  <span className="text-red-600 font-medium">OFF</span>
-                )}
-              </TableCell >
-              <TableCell >
-                <Button variant='outline' onClick={() => toggleRule(r)}>
-                  <PowerIcon />{r.enabled ? "Disable" : "Enable"}
-                </Button>
-                {" "}
-                <Button variant='outline' onClick={() => deleteRule(r.id)}>
-                  <TrashIcon />Delete
-                </Button>
-              </TableCell >
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+      <RulesTable
+        rules={rules}
+        onToggle={toggleRule}
+        onDelete={deleteRule}
+      />
 
       {/* WATCHLIST TABLE */}
       <Table border={1} cellPadding={8} style={{ marginTop: 12 }}>
