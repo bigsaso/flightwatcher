@@ -67,6 +67,8 @@ type FlightOffer = {
   base_price: number;
   currency: string;
   carrier: string;
+  outbound_flight_numbers: string[];
+  inbound_flight_numbers?: string[] | null;
   fare_brand: string;
   num_stops: number;
   // stop_airports: string[];
@@ -538,7 +540,7 @@ export default function Home() {
                         <span className="text-sm text-muted-foreground">
                           {formatDuration(o.outbound.duration)}
                           {" · "}
-                          {formatStops(o.stop_airports_outbound)}
+                          {o.outbound_flight_numbers + " " + formatStops(o.stop_airports_outbound)}
                         </span>
                       )}
                     </div>
@@ -558,8 +560,8 @@ export default function Home() {
                             {formatDuration(o.inbound.duration)}
                             {" · "}
                             {o.stop_airports_inbound
-                              ? formatStops(o.stop_airports_inbound)
-                              : "Direct"}
+                              ? o.inbound_flight_numbers + " " + formatStops(o.stop_airports_inbound)
+                              : o.inbound_flight_numbers + " " + "Direct"}
                           </span>
                         )}
                       </div>
