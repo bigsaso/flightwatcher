@@ -63,7 +63,7 @@ def search_flights_service(req):
                 if num_stops > rule["max_allowed_stops"]:
                     continue
 
-                flight_numbers = extract_flight_numbers(offer)
+                outbound_flight_numbers, inbound_flight_numbers = extract_flight_numbers(offer)
                 stops = extract_stops_by_itinerary(offer)
                 timing = extract_itinerary_times(offer)
                 checked_bags, cabin_bags = get_baggage_info(offer)
@@ -76,7 +76,8 @@ def search_flights_service(req):
                     "currency": offer["price"]["currency"],
 
                     "carrier": carrier,
-                    "flight_numbers": flight_numbers,
+                    "outbound_flight_numbers": outbound_flight_numbers,
+                    "inbound_flight_numbers": inbound_flight_numbers,
                     "fare_brand": get_fare_brand(offer),
 
                     "num_stops": num_stops,

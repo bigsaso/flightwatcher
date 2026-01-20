@@ -1,22 +1,34 @@
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Tuple, Optional
 
 
-def extract_flight_numbers(offer: Dict) -> List[str]:
+def extract_flight_numbers(
+    offer: Dict,
+) -> Tuple[List[str], Optional[List[str]]]:
     """
-    Returns a list of flight numbers in the format:
-    ["TS342"] or ["AZ651", "AZ1165"]
+    Returns:
+      outbound_flight_numbers: ["TS342"] or ["AZ651", "AZ1165"]
+      inbound_flight_numbers: same format, or None
     """
-    flight_numbers: List[str] = []
+    itineraries = offer.get("itineraries", [])
 
-    for itinerary in offer.get("itineraries", []):
+    def extract(itinerary: Dict) -> List[str]:
+        nums: List[str] = []
         for segment in itinerary.get("segments", []):
             carrier = segment.get("carrierCode")
             number = segment.get("number")
-
             if carrier and number:
-                flight_numbers.append(f"{carrier}{number}")
+                nums.append(f"{carrier}{number}")
+        return nums
 
-    return flight_numbers
+    outbound = extract(itineraries[0]) if len(itineraries) >= 1 else []
+
+    inbound = (
+        extract(itineraries[1])
+        if len(itineraries) >= 2
+        else None
+    )
+
+    return outbound, inbound
 
 
 def count_stops(offer: Dict[str, Any]) -> int:
