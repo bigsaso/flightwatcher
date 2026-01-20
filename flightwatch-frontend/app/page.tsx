@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button"
-import { ChevronDownIcon, Minus, Plus, PlusIcon, PowerIcon, SearchIcon, TrashIcon } from "lucide-react";
+import { ChevronDownIcon, Minus, Play, Plus, PlusIcon, PowerIcon, SearchIcon, TrashIcon } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -163,6 +163,9 @@ export default function Home() {
   const [loadingWatches, setLoadingWatches] = useState(false);
   const [highlightWatchId, setHighlightWatchId] = useState<number | null>(null);
 
+  // --- runs ---
+  const [runningWatchId, setRunningWatchId] = useState<number | null>(null);
+
   // --- search form ---
   const [openDepart, setOpenDepart] = useState(false);
   const [openReturn, setOpenReturn] = useState(false);
@@ -292,6 +295,29 @@ export default function Home() {
 
     // Auto-clear highlight after a short delay
     setTimeout(() => setHighlightWatchId(null), 2000);
+  }
+
+  async function runWatch(watchId: number) {
+    try {
+      setRunningWatchId(watchId);
+
+      const res = await fetch(`${API_BASE}/watches/${watchId}/run`, {
+        method: "POST",
+      });
+
+      if (!res.ok) {
+        throw new Error(await res.text());
+      }
+
+      const result = await res.json();
+      console.log("Watch run result:", result);
+
+      // optional: reload results table here later
+    } catch (e: any) {
+      alert(e.message);
+    } finally {
+      setRunningWatchId(null);
+    }
   }
 
   function formatDate(date?: Date | null): string | null {
@@ -518,6 +544,12 @@ export default function Home() {
                 )}
               </TableCell >
               <TableCell >
+                <Button
+                  variant="outline" onClick={() => runWatch(w.id)}
+                  disabled={!w.enabled || runningWatchId === w.id}
+                >
+                  <Play />{runningWatchId === w.id ? "Running…" : "Run"}
+                </Button>
                 <Button variant='outline' onClick={() => toggleWatch(w)}>
                   <PowerIcon />{w.enabled ? "Disable" : "Enable"}
                 </Button>{" "}
