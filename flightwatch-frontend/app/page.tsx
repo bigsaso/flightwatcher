@@ -42,6 +42,8 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 
+import Globe from "@/components/globe/globe";
+
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE!;
 
 type Rule = {
@@ -588,6 +590,12 @@ export default function Home() {
           </Table>
         </>
       )}
+
+      {/* GLOBE */}
+      {!openSearchDrawer && origin && destination && (
+        <Globe origin={origin} destination={destination} />
+      )}
+
     </main>
   );
 }
