@@ -1,14 +1,5 @@
 from typing import Dict, Any, List
 
-def get_stops(offer: dict) -> list[str]:
-    stops = []
-    for itinerary in offer.get("itineraries", []):
-        for seg in itinerary.get("segments", [])[:-1]:
-            arrival = seg.get("arrival", {}).get("iataCode")
-            if arrival:
-                stops.append(arrival)
-    return stops
-
 
 def count_stops(offer: Dict[str, Any]) -> int:
     max_stops = 0
@@ -17,13 +8,58 @@ def count_stops(offer: Dict[str, Any]) -> int:
     return max_stops
 
 
+def extract_stops_by_itinerary(offer: dict) -> dict:
+    """
+    Returns stop airports split by outbound and inbound itineraries.
+    """
+    itineraries = offer.get("itineraries", [])
+
+    def stops_for_itinerary(itinerary):
+        segments = itinerary.get("segments", [])
+        # stops are arrivals of all segments except the last
+        return [
+            seg["arrival"]["iataCode"]
+            for seg in segments[:-1]
+            if "arrival" in seg and "iataCode" in seg["arrival"]
+        ]
+
+    outbound_stops = stops_for_itinerary(itineraries[0]) if len(itineraries) >= 1 else []
+    inbound_stops = stops_for_itinerary(itineraries[1]) if len(itineraries) >= 2 else None
+
+    return {
+        "stop_airports_outbound": outbound_stops,
+        "stop_airports_inbound": inbound_stops,
+    }
+
+
 def get_total_duration(offer: dict) -> str:
     return offer["itineraries"][0]["duration"]
 
 
-def get_depart_and_arrive_times(offer: dict) -> tuple[str, str]:
-    segments = offer["itineraries"][0]["segments"]
-    return segments[0]["departure"]["at"], segments[-1]["arrival"]["at"]
+def extract_itinerary_times(offer: dict) -> dict:
+    """
+    Returns outbound/inbound timing blocks.
+    """
+    itineraries = offer.get("itineraries", [])
+
+    def block(itinerary):
+        segments = itinerary.get("segments", [])
+        if not segments:
+            return None
+
+        return {
+            "depart_time": segments[0]["departure"]["at"],
+            "arrive_time": segments[-1]["arrival"]["at"],
+            "duration": itinerary.get("duration"),
+        }
+
+    outbound = block(itineraries[0]) if len(itineraries) >= 1 else None
+    inbound = block(itineraries[1]) if len(itineraries) >= 2 else None
+
+    return {
+        "outbound": outbound,
+        "inbound": inbound,
+    }
 
 
 def get_baggage_info(offer: dict) -> tuple[int, int]:

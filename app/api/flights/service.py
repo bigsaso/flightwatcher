@@ -6,10 +6,10 @@ from app.core.config import API_CALL_DELAY_SECONDS
 from app.api.rules.helpers import fetch_active_rules
 
 from .helpers import (
-    get_stops,
     count_stops,
+    extract_stops_by_itinerary,
     get_total_duration,
-    get_depart_and_arrive_times,
+    extract_itinerary_times,
     get_baggage_info,
     get_fare_brand,
 )
@@ -54,16 +54,16 @@ def search_flights_service(req):
                 carrier = offer["validatingAirlineCodes"][0]
                 num_stops = count_stops(offer)
 
-                # ✅ Airline filter
+                # Airline filter
                 if valid_carriers and carrier not in valid_carriers:
                     continue
 
-                # ✅ Stop filter
+                # Stop filter
                 if num_stops > rule["max_allowed_stops"]:
                     continue
 
-                stops = get_stops(offer)
-                depart_time, arrive_time = get_depart_and_arrive_times(offer)
+                stops = extract_stops_by_itinerary(offer)
+                timing = extract_itinerary_times(offer)
                 checked_bags, cabin_bags = get_baggage_info(offer)
 
                 results.append({
@@ -77,11 +77,12 @@ def search_flights_service(req):
                     "fare_brand": get_fare_brand(offer),
 
                     "num_stops": num_stops,
-                    "stop_airports": stops,
                     "total_duration": get_total_duration(offer),
+                    "stop_airports_outbound": stops["stop_airports_outbound"],
+                    "stop_airports_inbound": stops["stop_airports_inbound"],
 
-                    "depart_time": depart_time,
-                    "arrive_time": arrive_time,
+                    "outbound": timing["outbound"],
+                    "inbound": timing["inbound"],
 
                     "checked_bags": checked_bags,
                     "cabin_bags": cabin_bags,
