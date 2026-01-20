@@ -18,59 +18,14 @@ import WatchResultsDrawer from "@/components/dashboard/watch-results-drawer";
 import SearchFlightsDrawer from "@/components/dashboard/search-flights-drawer";
 import CreateRuleDrawer from "@/components/dashboard/create-rule-drawer";
 import RulesTable from "@/components/dashboard/rules-table";
+import WatchlistTable from "@/components/dashboard/watchlist-table";
 import Globe from "@/components/globe/globe";
 
+import type { Watch } from "@/types/watch";
+import type { Rule } from "@/types/rule"
+import type { FlightOffer } from "@/types/flight-offer";
+
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE!;
-
-type Rule = {
-  id: number;
-  rule_name: string;
-  included_airline_codes: string | null;
-  non_stop: number | null;
-  max_allowed_stops: number;
-  enabled: number;
-};
-
-type Watch = {
-  id: number;
-  rule_id: number;
-  rule_name: string;
-  origin: string;
-  destination: string;
-  depart_date: string;
-  return_date?: string | null;
-  flex_days: number;
-  adults: number;
-  travel_class: string;
-  currency: string;
-  enabled: number;
-};
-
-type ItineraryTiming = {
-  depart_time: string;
-  arrive_time: string;
-  duration?: string;
-};
-
-type FlightOffer = {
-  rule_name: string;
-  total_price: number;
-  base_price: number;
-  currency: string;
-  carrier: string;
-  outbound_flight_numbers: string[];
-  inbound_flight_numbers?: string[] | null;
-  fare_brand: string;
-  num_stops: number;
-  total_duration: string;
-  stop_airports_outbound: string[];
-  stop_airports_inbound?: string[] | null;
-  outbound: ItineraryTiming;
-  inbound?: ItineraryTiming | null;
-  checked_bags: number;
-  cabin_bags: number;
-  seats_left: number;
-};
 
 export default function Home() {
   const [rules, setRules] = useState<Rule[]>([]);
@@ -347,7 +302,19 @@ export default function Home() {
       />
 
       {/* WATCHLIST TABLE */}
-      <Table border={1} cellPadding={8} style={{ marginTop: 12 }}>
+      <WatchlistTable
+        watches={watches}
+        highlightWatchId={highlightWatchId}
+        runningWatchId={runningWatchId}
+        onShowResults={(id) => {
+          setResultsWatchId(id);
+          setOpenResultsDrawer(true);
+        }}
+        onRun={runWatch}
+        onToggle={toggleWatch}
+        onDelete={deleteWatch}
+      />
+      {/* <Table border={1} cellPadding={8} style={{ marginTop: 12 }}>
         <TableHeader>
           <TableRow>
             <TableHead >Rule</TableHead >
@@ -415,7 +382,7 @@ export default function Home() {
             </TableRow>
           ))}
         </TableBody>
-      </Table>
+      </Table> */}
       <WatchResultsDrawer
         open={openResultsDrawer}
         onOpenChange={setOpenResultsDrawer}
