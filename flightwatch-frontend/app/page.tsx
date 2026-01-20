@@ -7,22 +7,16 @@ import { ChevronDownIcon, Minus, Plus, PlusIcon, PowerIcon, SearchIcon, TrashIco
 import {
   Table,
   TableBody,
-  TableCaption,
   TableCell,
-  TableFooter,
   TableHead,
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
 import { Calendar } from "@/components/ui/calendar"
-import { Checkbox } from "@/components/ui/checkbox"
 import {
   Field,
-  FieldDescription,
   FieldGroup,
   FieldLabel,
-  FieldLegend,
-  FieldSeparator,
   FieldSet,
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
@@ -33,10 +27,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Textarea } from "@/components/ui/textarea"
 import {
   Drawer,
-  DrawerClose,
   DrawerContent,
   DrawerDescription,
   DrawerFooter,
@@ -136,10 +128,12 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [loadingRules, setLoadingRules] = useState(false);
 
+  const [openSearchDrawer, setOpenSearchDrawer] = useState(false);
   const [searchResults, setSearchResults] = useState<FlightOffer[]>([]);
   const [searching, setSearching] = useState(false);
 
   // --- rule form ---
+  const [openCreateDrawer, setOpenCreateDrawer] = useState(false);
   const [ruleName, setRuleName] = useState("");
   const [airlines, setAirlines] = useState("");
   const [nonStop, setNonStop] = useState<number | null>(null);
@@ -148,6 +142,7 @@ export default function Home() {
   // --- search form ---
   const [openDepart, setOpenDepart] = useState(false);
   const [openReturn, setOpenReturn] = useState(false);
+  const [returnCalendarDate, setReturnCalendarDate] = useState<Date | undefined>(undefined);
   const [origin, setOrigin] = useState("");
   const [destination, setDestination] = useState("");
   const [depart, setDepart] = useState<Date | undefined>(undefined);
@@ -206,6 +201,7 @@ export default function Home() {
     setNonStop(null);
     setMaxStops(1);
     loadRules();
+    setOpenCreateDrawer(false);
   }
 
   function formatDate(date?: Date | null): string | null {
@@ -259,6 +255,7 @@ export default function Home() {
       alert(e.message);
     } finally {
       setSearching(false);
+      setOpenSearchDrawer(false);
     }
   }
 
@@ -279,7 +276,7 @@ export default function Home() {
       {error && <p style={{ color: "red" }}>{error}</p>}
 
       {/* CREATE RULE */}
-      <Drawer>
+      <Drawer open={openCreateDrawer} onOpenChange={setOpenCreateDrawer}>
         <DrawerTrigger asChild>
           <Button variant="outline">
             <PlusIcon /> New Rule
@@ -385,7 +382,7 @@ export default function Home() {
       {/* SEARCH DRAWER */}
       <h2 style={{ marginTop: 40 }}>Search Flights</h2>
 
-      <Drawer>
+      <Drawer open={openSearchDrawer} onOpenChange={setOpenSearchDrawer}>
         <DrawerTrigger asChild>
           <Button variant="outline">
             <SearchIcon /> Search Flights
@@ -439,7 +436,17 @@ export default function Home() {
                     </Field>
                     <Field>
                       <FieldLabel htmlFor="checkout-7j9-return-43j">Return Date</FieldLabel>
-                      <Popover open={openReturn} onOpenChange={setOpenReturn}>
+                      <Popover open={openReturn} onOpenChange={(open) => {
+                          setOpenReturn(open);
+                          if (open && depart) {
+                            setReturnCalendarDate(new Date(
+                              depart.getFullYear(),
+                              depart.getMonth(),
+                              depart.getDay() + 1
+                            ))
+                          }
+                        }}
+                      >
                         <PopoverTrigger asChild>
                           <Button
                             variant="outline"
@@ -454,25 +461,19 @@ export default function Home() {
                           <Calendar
                             mode="single"
                             selected={returnDate}
+                            month={returnCalendarDate}
+                            onMonthChange={setReturnCalendarDate}
                             captionLayout="dropdown"
                             onSelect={(date) => {
                               setReturnDate(date)
                               setOpenReturn(false)
                             }}
+                            disabled={(date) => depart ? date < depart : false}
                           />
                         </PopoverContent>
                       </Popover>
                     </Field>
                     <Field>
-                      <FieldLabel htmlFor="checkout-7j9-flex-days-43j">Flex Days</FieldLabel>
-                      {/* <Input
-                        id="checkout-7j9-flex-days-43j"
-                        type="number"
-                        min={0}
-                        value={flexDays} onChange={(e) =>
-                          setFlexDays(Number(e.target.value))
-                        }
-                      /> */}
                       <Stepper
                         value={flexDays}
                         label="Flex Days"
@@ -481,22 +482,6 @@ export default function Home() {
                       />
                     </Field>
                     <Field>
-                      <FieldLabel htmlFor="checkout-passengers">
-                        Passengers
-                      </FieldLabel>
-                      {/* <Input
-                        id="checkout-passengers"
-                        type="number"
-                        min={1}
-                        step={1}
-                        value={adults}
-                        onChange={(e) => {
-                          const value = Number(e.target.value);
-                          if (!Number.isNaN(value) && value >= 1) {
-                            setAdults(value);
-                          }
-                        }}
-                      /> */}
                       <Stepper
                         value={adults}
                         label="Passengers"
