@@ -6,8 +6,11 @@ def list_rules():
 
 
 def create_rule(rule):
+    data = rule.dict()
+    if data.get("non_stop") == 1:
+        data["max_allowed_stops"] = 0
     rule_id = insert_rule(rule.dict())
-    return {"id": rule_id, **rule.dict(), "enabled": 1}
+    return {"id": rule_id, **data, "enabled": 1}
 
 
 def set_rule_enabled(rule_id: int, enabled: int):
