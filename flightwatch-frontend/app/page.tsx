@@ -496,7 +496,8 @@ export default function Home() {
               <TableCell >
                 <Button variant='outline' onClick={() => toggleRule(r)}>
                   <PowerIcon />{r.enabled ? "Disable" : "Enable"}
-                </Button>{" "}
+                </Button>
+                {" "}
                 <Button variant='outline' onClick={() => deleteRule(r.id)}>
                   <TrashIcon />Delete
                 </Button>
@@ -556,15 +557,18 @@ export default function Home() {
                 >
                   <PanelTopOpen /> Results
                 </Button>
+                {" "}
                 <Button
                   variant="outline" onClick={() => runWatch(w.id)}
                   disabled={!w.enabled || runningWatchId === w.id}
                 >
                   <Play />{runningWatchId === w.id ? "Running…" : "Run"}
                 </Button>
+                {" "}
                 <Button variant='outline' onClick={() => toggleWatch(w)}>
                   <PowerIcon />{w.enabled ? "Disable" : "Enable"}
-                </Button>{" "}
+                </Button>
+                {" "}
                 <Button variant='outline' onClick={() => deleteWatch(w.id)}>
                   <TrashIcon />Delete
                 </Button>
