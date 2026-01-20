@@ -500,7 +500,14 @@ export default function Home() {
             >
               <TableCell >{w.rule_name}</TableCell >
               <TableCell >{w.origin} → {w.destination}</TableCell >
-              <TableCell >{w.depart_date} {w.return_date && `→ ${w.return_date}`}</TableCell >
+              <TableCell >{w.depart_date} {
+                w.return_date
+                ? `→ ${w.return_date}`
+                : <span className="text-muted-foreground italic">
+                    (One-way)
+                  </span>
+              }
+              </TableCell >
               <TableCell >{w.adults}</TableCell >
               <TableCell >{w.flex_days}</TableCell >
               <TableCell >
