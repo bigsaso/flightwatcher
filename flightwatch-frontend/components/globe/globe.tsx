@@ -12,7 +12,7 @@ type Props = {
   destination: string;
 };
 
-const GLOBE_RADIUS = 1.2;
+const GLOBE_RADIUS = 0.6;
 const SURFACE_OFFSET = 0;
 const GLOBE_PIXEL_SCALE = 560;
 
@@ -20,7 +20,7 @@ export default function Globe({ origin, destination }: Props) {
   const mountRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!origin || !destination) return;
+    // if (!origin || !destination) return;
 
     let renderer: THREE.WebGLRenderer | null = null;
     let controls: OrbitControls | null = null;
@@ -33,10 +33,19 @@ export default function Globe({ origin, destination }: Props) {
       const mount = mountRef.current;
       if (!mount) return;
 
-      const [from, to] = await Promise.all([
-        fetchAirport(origin),
-        fetchAirport(destination),
-      ]);
+      // const [from, to] = await Promise.all([
+      //   fetchAirport(origin),
+      //   fetchAirport(destination),
+      // ]);
+
+      // if (cancelled) return;
+      const hasRoute = origin && destination;
+      const airports = hasRoute
+        ? await Promise.all([
+            fetchAirport(origin),
+            fetchAirport(destination),
+          ])
+        : null;
 
       if (cancelled) return;
 
@@ -209,27 +218,31 @@ export default function Globe({ origin, destination }: Props) {
       land.scale.setScalar(1 + SURFACE_OFFSET);
       scene.add(land);
 
-      const markerGeometry = new THREE.SphereGeometry(GLOBE_RADIUS * 0.015, 16, 16);
-      const originMarker = new THREE.Mesh(
-        markerGeometry,
-        new THREE.MeshStandardMaterial({ color: 0xff7b7b, roughness: 0.4 })
-      );
-      originMarker.position.copy(latLonToVector3(from.lat, from.lon, GLOBE_RADIUS * (1 + SURFACE_OFFSET)));
-      scene.add(originMarker);
+      if (airports) {
+        const [from, to] = airports;
+        
+        const markerGeometry = new THREE.SphereGeometry(GLOBE_RADIUS * 0.015, 16, 16);
+        const originMarker = new THREE.Mesh(
+          markerGeometry,
+          new THREE.MeshStandardMaterial({ color: 0xff7b7b, roughness: 0.4 })
+        );
+        originMarker.position.copy(latLonToVector3(from.lat, from.lon, GLOBE_RADIUS * (1 + SURFACE_OFFSET)));
+        scene.add(originMarker);
 
-      const destinationMarker = new THREE.Mesh(
-        markerGeometry.clone(),
-        new THREE.MeshStandardMaterial({ color: 0x6ee7ff, roughness: 0.4 })
-      );
-      destinationMarker.position.copy(latLonToVector3(to.lat, to.lon, GLOBE_RADIUS * (1 + SURFACE_OFFSET)));
-      scene.add(destinationMarker);
+        const destinationMarker = new THREE.Mesh(
+          markerGeometry.clone(),
+          new THREE.MeshStandardMaterial({ color: 0x6ee7ff, roughness: 0.4 })
+        );
+        destinationMarker.position.copy(latLonToVector3(to.lat, to.lon, GLOBE_RADIUS * (1 + SURFACE_OFFSET)));
+        scene.add(destinationMarker);
 
-      const flightArc = createFlightArc(
-        latLonToVector3(from.lat, from.lon, GLOBE_RADIUS * (1 + SURFACE_OFFSET)),
-        latLonToVector3(to.lat, to.lon, GLOBE_RADIUS * (1 + SURFACE_OFFSET)),
-        GLOBE_RADIUS
-      );
-      scene.add(flightArc);
+        const flightArc = createFlightArc(
+          latLonToVector3(from.lat, from.lon, GLOBE_RADIUS * (1 + SURFACE_OFFSET)),
+          latLonToVector3(to.lat, to.lon, GLOBE_RADIUS * (1 + SURFACE_OFFSET)),
+          GLOBE_RADIUS
+        );
+        scene.add(flightArc);
+      }
 
       const handleResize = () => {
         if (!renderer || !mount) return;

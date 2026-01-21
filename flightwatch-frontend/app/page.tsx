@@ -269,6 +269,11 @@ export default function Home() {
 
       {error && <p style={{ color: "red" }}>{error}</p>}
 
+      {/* GLOBE */}
+      {!openSearchDrawer && (
+        <Globe origin={origin} destination={destination} />
+      )}
+
       {/* CREATE RULE */}
       <CreateRuleDrawer
         open={openCreateDrawer}
@@ -340,11 +345,6 @@ export default function Home() {
         formatDuration={formatDuration}
         formatStops={formatStops}
       />
-
-      {/* GLOBE */}
-      {!openSearchDrawer && origin && destination && (
-        <Globe origin={origin} destination={destination} />
-      )}
 
     </main>
   );
