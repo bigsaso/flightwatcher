@@ -2,7 +2,16 @@
 
 import { useEffect, useState } from "react";
 
-// Importing components (TODO: Make other components from here into their own components)
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+
+// Importing components
 import WatchResultsDrawer from "@/components/dashboard/watch-results-drawer";
 import SearchFlightsDrawer from "@/components/dashboard/search-flights-drawer";
 import CreateRuleDrawer from "@/components/dashboard/create-rule-drawer";
@@ -264,78 +273,92 @@ export default function Home() {
   }, [nonStop]);
 
   return (
-    <main style={{ padding: 24, fontFamily: "system-ui" }}>
-      <h1>Flights Watcher Admin</h1>
+    <main className="p-4 md:p-6 lg:p-8 font-sans space-y-4 md:space-y-6">
 
       {error && <p style={{ color: "red" }}>{error}</p>}
 
-      {/* GLOBE */}
-      {!openSearchDrawer && (
-        <Globe origin={origin} destination={destination} />
-      )}
-
-      {/* CREATE RULE */}
-      <CreateRuleDrawer
-        open={openCreateDrawer}
-        onOpenChange={setOpenCreateDrawer}
-        ruleName={ruleName}
-        setRuleName={setRuleName}
-        airlines={airlines}
-        setAirlines={setAirlines}
-        nonStop={nonStop}
-        setNonStop={setNonStop}
-        maxStops={maxStops}
-        setMaxStops={setMaxStops}
-        onCreate={createRule}
-      />
-
-      {/* RULES TABLE */}
-      <RulesTable
-        rules={rules}
-        onToggle={toggleRule}
-        onDelete={deleteRule}
-      />
-
-      {/* WATCHLIST TABLE */}
-      <WatchlistTable
-        watches={watches}
-        highlightWatchId={highlightWatchId}
-        runningWatchId={runningWatchId}
-        onShowResults={(id) => {
-          setResultsWatchId(id);
-          setOpenResultsDrawer(true);
-        }}
-        onRun={runWatch}
-        onToggle={toggleWatch}
-        onDelete={deleteWatch}
-      />
-      <WatchResultsDrawer
-        open={openResultsDrawer}
-        onOpenChange={setOpenResultsDrawer}
-        watchId={resultsWatchId}
-        apiBase={API_BASE}
-      />
-
-      {/* SEARCH DRAWER */}
-      <h2 style={{ marginTop: 40 }}>Search Flights</h2>
-      <SearchFlightsDrawer
-        open={openSearchDrawer}
-        onOpenChange={setOpenSearchDrawer}
-        origin={origin}
-        setOrigin={setOrigin}
-        destination={destination}
-        setDestination={setDestination}
-        depart={depart}
-        setDepart={setDepart}
-        returnDate={returnDate}
-        setReturnDate={setReturnDate}
-        flexDays={flexDays}
-        setFlexDays={setFlexDays}
-        adults={adults}
-        setAdults={setAdults}
-        onSearch={searchFlights}
-        searching={searching}
-      />
+      <Card>
+        <CardHeader>
+          <CardTitle>
+            <h1 className="text-2xl font-bold">Flights Watcher Admin</h1>
+          </CardTitle>
+          <CardDescription>Webapp to follow flights and see prices over time</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col md:flex-row gap-4 items-center justify-center">
+            <div>
+              {/* GLOBE */}
+              {!openSearchDrawer && (
+                <Globe origin={origin} destination={destination} />
+              )}
+            </div>
+            <div className="space-y-4 md:space-y-6">
+              {/* RULES TABLE */}
+              <RulesTable
+                rules={rules}
+                onToggle={toggleRule}
+                onDelete={deleteRule}
+              />
+              {/* WATCHLIST TABLE */}
+              <WatchlistTable
+                watches={watches}
+                highlightWatchId={highlightWatchId}
+                runningWatchId={runningWatchId}
+                onShowResults={(id) => {
+                  setResultsWatchId(id);
+                  setOpenResultsDrawer(true);
+                }}
+                onRun={runWatch}
+                onToggle={toggleWatch}
+                onDelete={deleteWatch}
+              />
+              <WatchResultsDrawer
+                open={openResultsDrawer}
+                onOpenChange={setOpenResultsDrawer}
+                watchId={resultsWatchId}
+                apiBase={API_BASE}
+              />
+            </div>
+          </div>
+        </CardContent>
+        <CardFooter>
+          <div className="space-x-4">
+            {/* CREATE RULE */}
+            <CreateRuleDrawer
+              open={openCreateDrawer}
+              onOpenChange={setOpenCreateDrawer}
+              ruleName={ruleName}
+              setRuleName={setRuleName}
+              airlines={airlines}
+              setAirlines={setAirlines}
+              nonStop={nonStop}
+              setNonStop={setNonStop}
+              maxStops={maxStops}
+              setMaxStops={setMaxStops}
+              onCreate={createRule}
+            />
+            {/* SEARCH DRAWER */}
+            <SearchFlightsDrawer
+              open={openSearchDrawer}
+              onOpenChange={setOpenSearchDrawer}
+              origin={origin}
+              setOrigin={setOrigin}
+              destination={destination}
+              setDestination={setDestination}
+              depart={depart}
+              setDepart={setDepart}
+              returnDate={returnDate}
+              setReturnDate={setReturnDate}
+              flexDays={flexDays}
+              setFlexDays={setFlexDays}
+              adults={adults}
+              setAdults={setAdults}
+              onSearch={searchFlights}
+              searching={searching}
+            />
+          </div>
+        </CardFooter>
+      </Card>
 
       {/* RESULTS */}
       <SearchResultsTable

@@ -12,7 +12,7 @@ type Props = {
   destination: string;
 };
 
-const GLOBE_RADIUS = 0.6;
+const GLOBE_RADIUS = 1;
 const SURFACE_OFFSET = 0;
 const GLOBE_PIXEL_SCALE = 560;
 
