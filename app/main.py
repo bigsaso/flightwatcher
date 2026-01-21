@@ -1,11 +1,29 @@
 from fastapi import FastAPI
+from contextlib import asynccontextmanager
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.flights.router import router as flights_router
 from app.api.rules.router import router as rules_router
 from app.api.watches.router import router as watches_router
 
-app = FastAPI(title="Flights Watcher API")
+from app.core.scheduler import start_scheduler, scheduler
+
+import logging
+
+logging.basicConfig(
+    level=logging.INFO,  # 👈 THIS is the key line
+    format="%(levelname)s:\t%(message)s",
+)
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # --- startup ---
+    start_scheduler()
+    yield
+    # --- shutdown ---
+    scheduler.shutdown()
+
+app = FastAPI(title="Flights Watcher API", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,

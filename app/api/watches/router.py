@@ -8,7 +8,8 @@ from app.api.watches.service import (
     set_watch_enabled,
     remove_watch,
     run_watch_service,
-    list_watched_results
+    list_watched_results,
+    run_all_watches_service
 )
 
 router = APIRouter(prefix="/watches", tags=["watches"])
@@ -54,3 +55,7 @@ def run_watch(watch_id: int):
 @router.get("/{watch_id}/results", response_model=list[WatchedResult])
 def get_results(watch_id: int):
     return list_watched_results(watch_id)
+
+@router.post("/watches/all/run")
+def run_all_watches():
+    return run_all_watches_service()

@@ -124,3 +124,42 @@ def list_watched_results(watch_id: int):
         results.append(WatchedResult(**data))
 
     return results
+
+def run_all_watches_service():
+    conn = sqlite3.connect(TOKEN_DB)
+    conn.row_factory = sqlite3.Row
+    cur = conn.cursor()
+
+    cur.execute(
+        """
+        SELECT id
+        FROM watched_searches
+        WHERE enabled = 1
+        """
+    )
+    rows = cur.fetchall()
+    conn.close()
+
+    results = []
+    failures = []
+
+    for row in rows:
+        watch_id = row["id"]
+        try:
+            result = run_watch_service(watch_id)
+            results.append({
+                "watch_id": watch_id,
+                "result_id": result.id if result else None,
+            })
+        except Exception as e:
+            failures.append({
+                "watch_id": watch_id,
+                "error": str(e),
+            })
+
+    return {
+        "ran": len(results),
+        "failed": len(failures),
+        "results": results,
+        "failures": failures,
+    }
