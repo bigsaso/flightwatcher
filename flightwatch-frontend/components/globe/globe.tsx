@@ -68,112 +68,75 @@ export default function Globe({ origin, destination }: Props) {
       fillLight.position.set(-5, -2, 4);
       scene.add(fillLight);
 
-      const createLandTextures = () => {
-        const canvas = document.createElement("canvas");
-        canvas.width = 1024;
-        canvas.height = 512;
-        const ctx = canvas.getContext("2d");
-        if (!ctx) {
-          return {
-            colorMap: new THREE.CanvasTexture(canvas),
-            maskMap: new THREE.CanvasTexture(canvas),
-            bumpMap: new THREE.CanvasTexture(canvas),
-          };
-        }
+      const createLandTextures = async () => {
+        const img = new Image();
+        img.src = "/textures/earth-land-mask.png";
+        await img.decode();
 
-        const random = (() => {
-          let seed = 123456;
-          return () => {
-            seed = (seed * 1664525 + 1013904223) % 4294967296;
-            return seed / 4294967296;
-          };
-        })();
+        const w = 2048;
+        const h = 1024;
 
-        ctx.fillStyle = "#000000";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        const baseCanvas = document.createElement("canvas");
+        baseCanvas.width = w;
+        baseCanvas.height = h;
+        const ctx = baseCanvas.getContext("2d")!;
 
-        const blobs = Array.from({ length: 14 }, () => ({
-          x: 120 + random() * 820,
-          y: 80 + random() * 340,
-          r: 50 + random() * 90,
-          tilt: (random() - 0.5) * 0.6,
-        }));
+        // Draw land mask
+        ctx.drawImage(img, 0, 0, w, h);
 
-        ctx.fillStyle = "#ffffff";
-        blobs.forEach(({ x, y, r, tilt }) => {
-          ctx.beginPath();
-          ctx.ellipse(x, y, r, r * 0.75, tilt, 0, Math.PI * 2);
-          ctx.fill();
-        });
-
-        ctx.filter = "blur(16px)";
-        ctx.globalCompositeOperation = "source-over";
-        ctx.fillStyle = "#ffffff";
-        blobs.forEach(({ x, y, r }) => {
-          ctx.beginPath();
-          ctx.ellipse(x, y, r * 0.7, r * 0.5, 0, 0, Math.PI * 2);
-          ctx.fill();
-        });
+        // --- soften + cartoonify ---
+        ctx.filter = "blur(6px)";
+        ctx.drawImage(baseCanvas, 0, 0);
         ctx.filter = "none";
 
-        const maskData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        for (let i = 0; i < maskData.data.length; i += 4) {
-          const value = maskData.data[i];
-          const thresholded = value > 40 ? 255 : 0;
-          maskData.data[i] = thresholded;
-          maskData.data[i + 1] = thresholded;
-          maskData.data[i + 2] = thresholded;
-          maskData.data[i + 3] = thresholded;
+        const data = ctx.getImageData(0, 0, w, h);
+        for (let i = 0; i < data.data.length; i += 4) {
+          const v = data.data[i]; // grayscale
+          const t = v > 80 ? 255 : 0; // bold threshold
+          data.data[i] = t;
+          data.data[i + 1] = t;
+          data.data[i + 2] = t;
+          data.data[i + 3] = t;
         }
-        ctx.putImageData(maskData, 0, 0);
+        ctx.putImageData(data, 0, 0);
 
-        const maskTexture = new THREE.CanvasTexture(canvas);
+        // --- mask texture ---
+        const maskTexture = new THREE.CanvasTexture(baseCanvas);
         maskTexture.colorSpace = THREE.SRGBColorSpace;
         maskTexture.wrapS = THREE.RepeatWrapping;
         maskTexture.wrapT = THREE.ClampToEdgeWrapping;
-        maskTexture.needsUpdate = true;
 
+        // --- color texture ---
         const colorCanvas = document.createElement("canvas");
-        colorCanvas.width = canvas.width;
-        colorCanvas.height = canvas.height;
-        const colorCtx = colorCanvas.getContext("2d");
-        if (colorCtx) {
-          colorCtx.fillStyle = "#ffffff";
-          colorCtx.fillRect(0, 0, colorCanvas.width, colorCanvas.height);
-          colorCtx.drawImage(canvas, 0, 0);
-          colorCtx.globalCompositeOperation = "source-in";
-          colorCtx.fillStyle = "#9ae14a";
-          colorCtx.fillRect(0, 0, colorCanvas.width, colorCanvas.height);
-        }
+        colorCanvas.width = w;
+        colorCanvas.height = h;
+        const colorCtx = colorCanvas.getContext("2d")!;
+        colorCtx.fillStyle = "#9ae14a";
+        colorCtx.fillRect(0, 0, w, h);
+        colorCtx.globalCompositeOperation = "destination-in";
+        colorCtx.drawImage(baseCanvas, 0, 0);
 
         const colorTexture = new THREE.CanvasTexture(colorCanvas);
         colorTexture.colorSpace = THREE.SRGBColorSpace;
         colorTexture.wrapS = THREE.RepeatWrapping;
         colorTexture.wrapT = THREE.ClampToEdgeWrapping;
-        colorTexture.needsUpdate = true;
 
+        // --- bump texture ---
         const bumpCanvas = document.createElement("canvas");
-        bumpCanvas.width = canvas.width;
-        bumpCanvas.height = canvas.height;
-        const bumpCtx = bumpCanvas.getContext("2d");
-        if (bumpCtx) {
-          bumpCtx.fillStyle = "#000000";
-          bumpCtx.fillRect(0, 0, bumpCanvas.width, bumpCanvas.height);
-          bumpCtx.filter = "blur(24px)";
-          bumpCtx.drawImage(canvas, 0, 0);
-          bumpCtx.filter = "none";
-        }
+        bumpCanvas.width = w;
+        bumpCanvas.height = h;
+        const bumpCtx = bumpCanvas.getContext("2d")!;
+        bumpCtx.filter = "blur(18px)";
+        bumpCtx.drawImage(baseCanvas, 0, 0);
 
         const bumpTexture = new THREE.CanvasTexture(bumpCanvas);
-        bumpTexture.colorSpace = THREE.SRGBColorSpace;
         bumpTexture.wrapS = THREE.RepeatWrapping;
         bumpTexture.wrapT = THREE.ClampToEdgeWrapping;
-        bumpTexture.needsUpdate = true;
 
         return { colorMap: colorTexture, maskMap: maskTexture, bumpMap: bumpTexture };
       };
 
-      const { colorMap, maskMap, bumpMap } = createLandTextures();
+      const { colorMap, maskMap, bumpMap } = await createLandTextures();
 
       const globeGeometry = new THREE.SphereGeometry(1, 96, 96);
       const oceanMaterial = new THREE.MeshStandardMaterial({
