@@ -12,6 +12,9 @@ type Props = {
   destination: string;
 };
 
+const GLOBE_RADIUS = 0.75;
+const SURFACE_OFFSET = 0.02;
+
 export default function Globe({ origin, destination }: Props) {
   const mountRef = useRef<HTMLDivElement>(null);
 
@@ -138,7 +141,7 @@ export default function Globe({ origin, destination }: Props) {
 
       const { colorMap, maskMap, bumpMap } = await createLandTextures();
 
-      const globeGeometry = new THREE.SphereGeometry(1, 96, 96);
+      const globeGeometry = new THREE.SphereGeometry(GLOBE_RADIUS, 96, 96);
       const oceanMaterial = new THREE.MeshStandardMaterial({
         color: 0x2f8bff,
         roughness: 0.25,
@@ -157,27 +160,28 @@ export default function Globe({ origin, destination }: Props) {
         metalness: 0.02,
       });
       const land = new THREE.Mesh(globeGeometry.clone(), landMaterial);
-      land.scale.setScalar(1.01);
+      land.scale.setScalar(1 + SURFACE_OFFSET);
       scene.add(land);
 
-      const markerGeometry = new THREE.SphereGeometry(0.028, 16, 16);
+      const markerGeometry = new THREE.SphereGeometry(GLOBE_RADIUS * 0.015, 16, 16);
       const originMarker = new THREE.Mesh(
         markerGeometry,
         new THREE.MeshStandardMaterial({ color: 0xff7b7b, roughness: 0.4 })
       );
-      originMarker.position.copy(latLonToVector3(from.lat, from.lon, 1.02));
+      originMarker.position.copy(latLonToVector3(from.lat, from.lon, GLOBE_RADIUS * (1 + SURFACE_OFFSET)));
       scene.add(originMarker);
 
       const destinationMarker = new THREE.Mesh(
         markerGeometry.clone(),
         new THREE.MeshStandardMaterial({ color: 0x6ee7ff, roughness: 0.4 })
       );
-      destinationMarker.position.copy(latLonToVector3(to.lat, to.lon, 1.02));
+      destinationMarker.position.copy(latLonToVector3(to.lat, to.lon, GLOBE_RADIUS * (1 + SURFACE_OFFSET)));
       scene.add(destinationMarker);
 
       const flightArc = createFlightArc(
-        latLonToVector3(from.lat, from.lon, 1.02),
-        latLonToVector3(to.lat, to.lon, 1.02)
+        latLonToVector3(from.lat, from.lon, GLOBE_RADIUS * (1 + SURFACE_OFFSET)),
+        latLonToVector3(to.lat, to.lon, GLOBE_RADIUS * (1 + SURFACE_OFFSET)),
+        GLOBE_RADIUS
       );
       scene.add(flightArc);
 

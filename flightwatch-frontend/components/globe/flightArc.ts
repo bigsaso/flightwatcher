@@ -2,12 +2,16 @@ import * as THREE from "three";
 
 export function createFlightArc(
   start: THREE.Vector3,
-  end: THREE.Vector3
+  end: THREE.Vector3,
+  radius: number
 ) {
+  const ARC_HEIGHT = radius * 0.35;
+
   const mid = start.clone()
     .add(end)
+    .multiplyScalar(1.3)
     .normalize()
-    .multiplyScalar(1.3);
+    .multiplyScalar(radius + ARC_HEIGHT);
 
   const curve = new THREE.QuadraticBezierCurve3(
     start,
@@ -18,7 +22,7 @@ export function createFlightArc(
   const geometry = new THREE.TubeGeometry(
     curve,
     64,
-    0.005,
+    radius * 0.003,
     8,
     false
   );
