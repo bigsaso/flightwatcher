@@ -76,8 +76,8 @@ export default function Globe({ origin, destination }: Props) {
         img.src = "/textures/earth-land-mask.png";
         await img.decode();
 
-        const w = 2048;
-        const h = 1024;
+        const w = img.width;
+        const h = img.height;
 
         const baseCanvas = document.createElement("canvas");
         baseCanvas.width = w;
@@ -135,6 +135,14 @@ export default function Globe({ origin, destination }: Props) {
         const bumpTexture = new THREE.CanvasTexture(bumpCanvas);
         bumpTexture.wrapS = THREE.RepeatWrapping;
         bumpTexture.wrapT = THREE.ClampToEdgeWrapping;
+
+        maskTexture.minFilter = THREE.LinearMipmapLinearFilter;
+        maskTexture.magFilter = THREE.LinearFilter;
+        maskTexture.generateMipmaps = true;
+
+        colorTexture.minFilter = THREE.LinearMipmapLinearFilter;
+        colorTexture.magFilter = THREE.LinearFilter;
+        colorTexture.generateMipmaps = true;
 
         return { colorMap: colorTexture, maskMap: maskTexture, bumpMap: bumpTexture };
       };
