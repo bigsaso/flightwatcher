@@ -45,7 +45,11 @@ type Props = {
 };
 
 function formatDateTime(iso: string) {
-  return new Date(iso).toLocaleString(undefined, {
+  const utcIso = iso.includes("T")
+    ? iso.endsWith("Z") ? iso : `${iso}Z`
+    : iso.replace(" ", "T") + "Z";
+  return new Date(utcIso).toLocaleString(undefined, {
+    timeZone: "America/Toronto",
     dateStyle: "medium",
     timeStyle: "short",
   });
