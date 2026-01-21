@@ -101,7 +101,7 @@ export default function SearchFlightsDrawer({
                     <Input
                       placeholder="Origin airport code"
                       value={origin}
-                      onChange={(e) => setOrigin(e.target.value)}
+                      onChange={(e) => setOrigin(e.target.value.toUpperCase())}
                     />
                   </Field>
 
@@ -110,7 +110,7 @@ export default function SearchFlightsDrawer({
                     <Input
                       placeholder="Destination airport code"
                       value={destination}
-                      onChange={(e) => setDestination(e.target.value)}
+                      onChange={(e) => setDestination(e.target.value.toUpperCase())}
                     />
                   </Field>
 
