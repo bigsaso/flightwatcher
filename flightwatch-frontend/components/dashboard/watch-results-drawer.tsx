@@ -16,26 +16,37 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs"
+import { AppWindowIcon, ChartLine } from "lucide-react"
 
-type WatchResult = {
-  id: number;
-  watch_id: number;
-  total_price: number;
-  currency: string;
-  carrier: string;
-  fare_brand: string;
+import PriceHistoryChart from "@/components/charts/price-history-chart";
 
-  outbound_depart_time: string;
-  outbound_arrive_time: string;
-  inbound_depart_time: string | null;
-  inbound_arrive_time: string | null;
+import type { WatchResult } from "@/types/watch";
 
-  checked_bags: number;
-  cabin_bags: number;
-  seats_left: number;
-  adults: number;
-  captured_at: string;
-};
+// type WatchResult = {
+//   id: number;
+//   watch_id: number;
+//   total_price: number;
+//   currency: string;
+//   carrier: string;
+//   fare_brand: string;
+
+//   outbound_depart_time: string;
+//   outbound_arrive_time: string;
+//   inbound_depart_time: string | null;
+//   inbound_arrive_time: string | null;
+
+//   checked_bags: number;
+//   cabin_bags: number;
+//   seats_left: number;
+//   adults: number;
+//   captured_at: string;
+// };
 
 type Props = {
   open: boolean;
@@ -103,64 +114,81 @@ export default function WatchResultsDrawer({
               No results yet
             </p>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Captured</TableHead>
-                  <TableHead>Passengers</TableHead>
-                  <TableHead>Carrier</TableHead>
-                  <TableHead>Outbound</TableHead>
-                  <TableHead>Inbound</TableHead>
-                  <TableHead>Bags</TableHead>
-                  <TableHead>Seats</TableHead>
-                  <TableHead>Price</TableHead>
-                </TableRow>
-              </TableHeader>
+            <Tabs defaultValue="table">
+              <TabsList>
+                <TabsTrigger value="table">
+                  <AppWindowIcon />
+                  Results Table
+                </TabsTrigger>
+                <TabsTrigger value="chart">
+                  <ChartLine />
+                  Price History
+                </TabsTrigger>
+              </TabsList>
+              <TabsContent value="table">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Captured</TableHead>
+                      <TableHead>Passengers</TableHead>
+                      <TableHead>Carrier</TableHead>
+                      <TableHead>Outbound</TableHead>
+                      <TableHead>Inbound</TableHead>
+                      <TableHead>Bags</TableHead>
+                      <TableHead>Seats</TableHead>
+                      <TableHead>Price</TableHead>
+                    </TableRow>
+                  </TableHeader>
 
-              <TableBody>
-                {results.map((r) => (
-                  <TableRow key={r.id}>
-                    <TableCell>
-                      {formatDateTime(r.captured_at)}
-                    </TableCell>
+                  <TableBody>
+                    {results.map((r) => (
+                      <TableRow key={r.id}>
+                        <TableCell>
+                          {formatDateTime(r.captured_at)}
+                        </TableCell>
 
-                    <TableCell>{r.adults}</TableCell>
+                        <TableCell>{r.adults}</TableCell>
 
-                    <TableCell>
-                      {r.carrier} · {r.fare_brand}
-                    </TableCell>
+                        <TableCell>
+                          {r.carrier} · {r.fare_brand}
+                        </TableCell>
 
-                    <TableCell>
-                      {formatDateTime(r.outbound_depart_time)} →{" "}
-                      {formatDateTime(r.outbound_arrive_time)}
-                    </TableCell>
+                        <TableCell>
+                          {formatDateTime(r.outbound_depart_time)} →{" "}
+                          {formatDateTime(r.outbound_arrive_time)}
+                        </TableCell>
 
-                    <TableCell>
-                      {r.inbound_depart_time ? (
-                        <>
-                          {formatDateTime(r.inbound_depart_time)} →{" "}
-                          {formatDateTime(r.inbound_arrive_time!)}
-                        </>
-                      ) : (
-                        <span className="italic text-muted-foreground">
-                          One-way
-                        </span>
-                      )}
-                    </TableCell>
+                        <TableCell>
+                          {r.inbound_depart_time ? (
+                            <>
+                              {formatDateTime(r.inbound_depart_time)} →{" "}
+                              {formatDateTime(r.inbound_arrive_time!)}
+                            </>
+                          ) : (
+                            <span className="italic text-muted-foreground">
+                              One-way
+                            </span>
+                          )}
+                        </TableCell>
 
-                    <TableCell>
-                      🧳 {r.checked_bags} / 🎒 {r.cabin_bags}
-                    </TableCell>
+                        <TableCell>
+                          🧳 {r.checked_bags} / 🎒 {r.cabin_bags}
+                        </TableCell>
 
-                    <TableCell>{r.seats_left}</TableCell>
+                        <TableCell>{r.seats_left}</TableCell>
 
-                    <TableCell>
-                      {r.currency} {r.total_price}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                        <TableCell>
+                          {r.currency} {r.total_price}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TabsContent>
+              <TabsContent value="chart">
+                <PriceHistoryChart results={results} />
+              </TabsContent>
+            </Tabs>
           )}
         </div>
       </DrawerContent>
